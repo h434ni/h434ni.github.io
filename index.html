@@ -432,9 +432,8 @@
                     }
                 });
 
-                el.addEventListener('mouseenter', () => {
+                function handleIconEnter() {
                     body.isHovered = true;
-                    
                     descText.innerText = item.desc;
                     descText.classList.add('active');
 
@@ -447,14 +446,35 @@
 
                     root.style.setProperty('--bg-color', hexToRgba(item.color, 0.15));
                     root.style.setProperty('--pattern-color', hexToRgba(item.color, 0.25));
+                }
+
+                function handleIconLeave() {
+                    if (!draggedBody) {
+                        body.isHovered = false;
+                        descText.classList.remove('active');
+                        linkWrapper.classList.remove('active');
+                        root.style.setProperty('--bg-color', '#4f97ac');
+                        root.style.setProperty('--pattern-color', '#397e90');
+                    }
+                }
+
+                el.addEventListener('mouseenter', handleIconEnter);
+                el.addEventListener('mouseleave', handleIconLeave);
+
+                el.addEventListener('touchstart', (e) => {
+                    if(isGridMode) return;
+                    handleIconEnter();
+                    e.preventDefault();
                 });
 
-                el.addEventListener('mouseleave', () => {
-                    body.isHovered = false;
-                    descText.classList.remove('active');
-                    linkWrapper.classList.remove('active');
-                    root.style.setProperty('--bg-color', '#4f97ac');
-                    root.style.setProperty('--pattern-color', '#397e90');
+                el.addEventListener('touchend', (e) => {
+                    handleIconLeave();
+                    e.preventDefault();
+                });
+
+                el.addEventListener('touchcancel', (e) => {
+                    handleIconLeave();
+                    e.preventDefault();
                 });
 
                 document.body.appendChild(el);
