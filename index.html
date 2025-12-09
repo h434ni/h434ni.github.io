@@ -168,19 +168,30 @@
         }
 
         body.grid-active .orbiter {
-            background-color: transparent !important; 
+            background-color: transparent !important;
             box-shadow: none !important;
-            width: 48px !important; 
+            width: 48px !important;
             height: 48px !important;
+            cursor: pointer !important;
         }
 
         body.grid-active .orbiter i {
             color: var(--brand-color) !important;
             font-size: 29px !important;
+            transform: none !important;
         }
-        
+
+        body.grid-active .orbiter.activated {
+            background-color: var(--icon-bg) !important;
+        }
+
+        body.grid-active .orbiter.activated i {
+            color: white !important;
+        }
+
+        /* Remove hover scaling in grid mode */
         body.grid-active .orbiter:hover i {
-            transform: scale(1.3);
+            transform: none !important;
         }
 
         #gridLinkContainer {
@@ -368,6 +379,7 @@
         
         let isGridMode = false;
         let isAnimating = false;
+        let currentActiveIcon = null;
 
         function hexToRgba(hex, alpha) {
             let c = hex.substring(1).split('');
@@ -391,6 +403,7 @@
                 el.style.setProperty('--icon-bg', item.color);
                 el.style.setProperty('--brand-color', item.color);
                 el.style.setProperty('--shadow-color', hexToRgba(item.color, 0.4));
+                el.style.setProperty('--grid-bg-color', item.color.replace('#', ''));
                 el.style.fontSize = Math.round(diameter * 0.5) + 'px';
 
                 const safeW = width - (config.spawnPadding * 2);
@@ -408,7 +421,8 @@
                     vy: (Math.random() - 0.5) * 1.5,
                     radius: diameter / 2,
                     data: item,
-                    isHovered: false
+                    isHovered: false,
+                    isActivated: false
                 };
 
                 function handleDragStart(e) {
@@ -434,8 +448,44 @@
                 el.addEventListener('mousedown', handleDragStart);
                 el.addEventListener('touchstart', handleDragStart);
 
+                // Grid mode click handler with state preservation
                 el.addEventListener('click', (e) => {
-                    if(!isGridMode) {
+                    if(isGridMode) {
+                        // Enhanced grid mode: state preservation until different icon clicked
+                        if (!body.isActivated) {
+                            // First click on this icon: activate it
+
+                            // If there's already an active icon, deactivate it first
+                            if (currentActiveIcon && currentActiveIcon !== body) {
+                                currentActiveIcon.isActivated = false;
+                                currentActiveIcon.element.classList.remove('activated');
+                            }
+
+                            // Activate the new icon
+                            body.isActivated = true;
+                            body.element.classList.add('activated');
+                            currentActiveIcon = body;
+
+                            // Update link preview
+                            linkPrefix.innerText = item.shlink.pre;
+                            linkSuffix.innerText = item.shlink.suf;
+                            linkWrapper.style.color = item.color;
+                            linkWrapper.classList.add('active');
+
+                            // Update background color
+                            descText.innerText = item.desc;
+                            descText.classList.add('active');
+                            root.style.setProperty('--bg-color', hexToRgba(item.color, 0.15));
+                            root.style.setProperty('--pattern-color', hexToRgba(item.color, 0.25));
+
+                            e.preventDefault();
+                            e.stopPropagation();
+                        } else {
+                            // Second click on same icon: navigate to the link
+                            window.open(item.link, '_blank');
+                        }
+                    } else {
+                        // Normal mode: drag detection
                         let clientX, clientY;
                         if (e.type.startsWith('touch')) {
                             const touch = e.touches[0] || e.changedTouches[0];
@@ -485,18 +535,71 @@
                 el.addEventListener('mouseleave', handleIconLeave);
 
                 el.addEventListener('touchstart', (e) => {
-                    if(isGridMode) return;
-                    handleIconEnter();
-                    e.preventDefault();
+                    if(isGridMode) {
+                        // Grid mode touch handling with state preservation
+                        if (!body.isActivated) {
+                            // First touch: activate the icon
+
+                            // If there's already an active icon, deactivate it first
+                            if (currentActiveIcon && currentActiveIcon !== body) {
+                                currentActiveIcon.isActivated = false;
+                                currentActiveIcon.element.classList.remove('activated');
+                            }
+
+                            // Activate the new icon
+                            body.isActivated = true;
+                            body.element.classList.add('activated');
+                            currentActiveIcon = body;
+
+                            // Show the link preview
+                            linkPrefix.innerText = item.shlink.pre;
+                            linkSuffix.innerText = item.shlink.suf;
+                            linkWrapper.style.color = item.color;
+                            linkWrapper.classList.add('active');
+
+                            // Change background color
+                            descText.innerText = item.desc;
+                            descText.classList.add('active');
+                            root.style.setProperty('--bg-color', hexToRgba(item.color, 0.15));
+                            root.style.setProperty('--pattern-color', hexToRgba(item.color, 0.25));
+
+                            e.preventDefault();
+                        } else {
+                            // Second touch: will navigate on touchend
+                            // Allow the touch to proceed for potential navigation
+                        }
+                    } else {
+                        handleIconEnter();
+                        e.preventDefault();
+                    }
                 });
 
                 el.addEventListener('touchend', (e) => {
-                    handleIconLeave();
-                    e.preventDefault();
+                    if(isGridMode) {
+                        // Grid mode touchend handling
+                        if (body.isActivated) {
+                            // Second touch: navigate to the link
+                            window.open(item.link, '_blank');
+                            e.preventDefault();
+                        }
+                    } else {
+                        handleIconLeave();
+                        e.preventDefault();
+                    }
                 });
 
                 el.addEventListener('touchcancel', (e) => {
-                    handleIconLeave();
+                    if(isGridMode) {
+                        // Reset if touch was cancelled
+                        if (!body.isActivated) {
+                            linkWrapper.classList.remove('active');
+                            descText.classList.remove('active');
+                            root.style.setProperty('--bg-color', '#4f97ac');
+                            root.style.setProperty('--pattern-color', '#397e90');
+                        }
+                    } else {
+                        handleIconLeave();
+                    }
                     e.preventDefault();
                 });
 
@@ -589,12 +692,24 @@
             } else {
                 isGridMode = false;
                 document.body.classList.remove('grid-active');
-                
+
+                // Reset all activation states when exiting grid mode
+                bodies.forEach((b) => {
+                    b.isActivated = false;
+                    b.element.classList.remove('activated');
+                });
+
+                // Reset link display and background
+                linkWrapper.classList.remove('active');
+                descText.classList.remove('active');
+                root.style.setProperty('--bg-color', '#4f97ac');
+                root.style.setProperty('--pattern-color', '#397e90');
+
                 centerPiece.style.transition = 'all 0.4s ease-in-out';
                 centerPiece.style.removeProperty('left');
                 centerPiece.style.removeProperty('top');
-                
-                descText.style.top = ''; 
+
+                descText.style.top = '';
                 descText.style.left = '50%';
                 descText.style.transform = 'translateX(-50%)';
 
@@ -606,10 +721,10 @@
                 bodies.forEach((b) => {
                     const randX = offsetX + Math.random() * (safeW || width);
                     const randY = offsetY + Math.random() * (safeH || height);
-                    
+
                     b.element.style.transform = `translate3d(${randX}px, ${randY}px, 0)`;
-                    
-                    b.x = randX + b.radius; 
+
+                    b.x = randX + b.radius;
                     b.y = randY + b.radius;
                     b.vx = (Math.random() - 0.5) * 5;
                     b.vy = (Math.random() - 0.5) * 5;
