@@ -411,20 +411,43 @@
                     isHovered: false
                 };
 
-                el.addEventListener('mousedown', (e) => {
+                function handleDragStart(e) {
                     if(isGridMode) return;
                     draggedBody = body;
-                    mouseX = e.clientX;
-                    mouseY = e.clientY;
-                    dragStartX = e.clientX;
-                    dragStartY = e.clientY;
-                    e.preventDefault(); 
-                });
+
+                    if (e.type.startsWith('touch')) {
+                        const touch = e.touches[0] || e.changedTouches[0];
+                        mouseX = touch.clientX;
+                        mouseY = touch.clientY;
+                        dragStartX = touch.clientX;
+                        dragStartY = touch.clientY;
+                    } else {
+                        mouseX = e.clientX;
+                        mouseY = e.clientY;
+                        dragStartX = e.clientX;
+                        dragStartY = e.clientY;
+                    }
+
+                    e.preventDefault();
+                }
+
+                el.addEventListener('mousedown', handleDragStart);
+                el.addEventListener('touchstart', handleDragStart);
 
                 el.addEventListener('click', (e) => {
                     if(!isGridMode) {
-                        const dx = e.clientX - dragStartX;
-                        const dy = e.clientY - dragStartY;
+                        let clientX, clientY;
+                        if (e.type.startsWith('touch')) {
+                            const touch = e.touches[0] || e.changedTouches[0];
+                            clientX = touch.clientX;
+                            clientY = touch.clientY;
+                        } else {
+                            clientX = e.clientX;
+                            clientY = e.clientY;
+                        }
+
+                        const dx = clientX - dragStartX;
+                        const dy = clientY - dragStartY;
                         if (dx*dx + dy*dy > 25) {
                             e.preventDefault();
                             e.stopPropagation();
@@ -553,7 +576,6 @@
                         const targetX = pos.centerX + startOffsetX + (col * pos.gapX);
                         const targetY = pos.startY + (row * pos.gapY);
 
-                        // FIX: Center grid icons by subtracting half of grid-size (48px / 2 = 24px)
                         b.element.style.transform = `translate3d(${targetX - 24}px, ${targetY - 24}px, 0)`;
                     });
 
@@ -601,12 +623,29 @@
             }
         }
 
-        window.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
+        function updateInputPosition(e) {
+            if (e.type.startsWith('touch')) {
+                const touch = e.touches[0] || e.changedTouches[0];
+                mouseX = touch.clientX;
+                mouseY = touch.clientY;
+            } else {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            }
+        }
+
+        window.addEventListener('mousemove', updateInputPosition);
+        window.addEventListener('touchmove', (e) => {
+            updateInputPosition(e);
+            if (draggedBody) {
+            }
         });
 
         window.addEventListener('mouseup', () => {
+            draggedBody = null;
+        });
+
+        window.addEventListener('touchend', () => {
             draggedBody = null;
         });
 
