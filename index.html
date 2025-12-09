@@ -104,14 +104,12 @@
             transform: none;
         }
 
-        /* Fixed Description Text Alignment */
         .desc-text {
             position: absolute;
             bottom: 15%; 
             left: 50%;
             transform: translateX(-50%);
             
-            /* Allow width to fit text, centered content */
             width: auto;
             min-width: 120px; 
             white-space: nowrap;
@@ -189,7 +187,6 @@
             color: white !important;
         }
 
-        /* Remove hover scaling in grid mode */
         body.grid-active .orbiter:hover i {
             transform: none !important;
         }
@@ -448,31 +445,24 @@
                 el.addEventListener('mousedown', handleDragStart);
                 el.addEventListener('touchstart', handleDragStart);
 
-                // Grid mode click handler with state preservation
                 el.addEventListener('click', (e) => {
                     if(isGridMode) {
-                        // Enhanced grid mode: state preservation until different icon clicked
                         if (!body.isActivated) {
-                            // First click on this icon: activate it
 
-                            // If there's already an active icon, deactivate it first
                             if (currentActiveIcon && currentActiveIcon !== body) {
                                 currentActiveIcon.isActivated = false;
                                 currentActiveIcon.element.classList.remove('activated');
                             }
 
-                            // Activate the new icon
                             body.isActivated = true;
                             body.element.classList.add('activated');
                             currentActiveIcon = body;
 
-                            // Update link preview
                             linkPrefix.innerText = item.shlink.pre;
                             linkSuffix.innerText = item.shlink.suf;
                             linkWrapper.style.color = item.color;
                             linkWrapper.classList.add('active');
 
-                            // Update background color
                             descText.innerText = item.desc;
                             descText.classList.add('active');
                             root.style.setProperty('--bg-color', hexToRgba(item.color, 0.15));
@@ -481,11 +471,9 @@
                             e.preventDefault();
                             e.stopPropagation();
                         } else {
-                            // Second click on same icon: navigate to the link
                             window.open(item.link, '_blank');
                         }
                     } else {
-                        // Normal mode: drag detection
                         let clientX, clientY;
                         if (e.type.startsWith('touch')) {
                             const touch = e.touches[0] || e.changedTouches[0];
@@ -536,28 +524,22 @@
 
                 el.addEventListener('touchstart', (e) => {
                     if(isGridMode) {
-                        // Grid mode touch handling with state preservation
                         if (!body.isActivated) {
-                            // First touch: activate the icon
 
-                            // If there's already an active icon, deactivate it first
                             if (currentActiveIcon && currentActiveIcon !== body) {
                                 currentActiveIcon.isActivated = false;
                                 currentActiveIcon.element.classList.remove('activated');
                             }
 
-                            // Activate the new icon
                             body.isActivated = true;
                             body.element.classList.add('activated');
                             currentActiveIcon = body;
 
-                            // Show the link preview
                             linkPrefix.innerText = item.shlink.pre;
                             linkSuffix.innerText = item.shlink.suf;
                             linkWrapper.style.color = item.color;
                             linkWrapper.classList.add('active');
 
-                            // Change background color
                             descText.innerText = item.desc;
                             descText.classList.add('active');
                             root.style.setProperty('--bg-color', hexToRgba(item.color, 0.15));
@@ -565,8 +547,6 @@
 
                             e.preventDefault();
                         } else {
-                            // Second touch: will navigate on touchend
-                            // Allow the touch to proceed for potential navigation
                         }
                     } else {
                         handleIconEnter();
@@ -576,9 +556,7 @@
 
                 el.addEventListener('touchend', (e) => {
                     if(isGridMode) {
-                        // Grid mode touchend handling
                         if (body.isActivated) {
-                            // Second touch: navigate to the link
                             window.open(item.link, '_blank');
                             e.preventDefault();
                         }
@@ -590,7 +568,6 @@
 
                 el.addEventListener('touchcancel', (e) => {
                     if(isGridMode) {
-                        // Reset if touch was cancelled
                         if (!body.isActivated) {
                             linkWrapper.classList.remove('active');
                             descText.classList.remove('active');
@@ -693,13 +670,11 @@
                 isGridMode = false;
                 document.body.classList.remove('grid-active');
 
-                // Reset all activation states when exiting grid mode
                 bodies.forEach((b) => {
                     b.isActivated = false;
                     b.element.classList.remove('activated');
                 });
 
-                // Reset link display and background
                 linkWrapper.classList.remove('active');
                 descText.classList.remove('active');
                 root.style.setProperty('--bg-color', '#4f97ac');
