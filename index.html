@@ -364,6 +364,27 @@
         const linkSuffix = document.getElementById('linkSuffix');
         const linkCore = document.getElementById('linkCore');
 
+        linkWrapper.addEventListener('click', (e) => {
+            if (isGridMode && currentActiveIcon) {
+                window.open(currentActiveIcon.data.link, '_blank');
+                e.preventDefault();
+            }
+        });
+
+        linkWrapper.style.cursor = 'pointer';
+
+        function animateLinkPreview(preText, sufText, color) {
+            linkPrefix.innerText = preText;
+            linkSuffix.innerText = sufText;
+            linkWrapper.style.color = color;
+
+            linkWrapper.classList.remove('active');
+
+            void linkWrapper.offsetWidth;
+
+            linkWrapper.classList.add('active');
+        }
+
         const root = document.documentElement;
 
         let width = window.innerWidth;
@@ -458,10 +479,7 @@
                             body.element.classList.add('activated');
                             currentActiveIcon = body;
 
-                            linkPrefix.innerText = item.shlink.pre;
-                            linkSuffix.innerText = item.shlink.suf;
-                            linkWrapper.style.color = item.color;
-                            linkWrapper.classList.add('active');
+                            animateLinkPreview(item.shlink.pre, item.shlink.suf, item.color);
 
                             descText.innerText = item.desc;
                             descText.classList.add('active');
@@ -499,10 +517,9 @@
                     descText.classList.add('active');
 
                     if(isGridMode) {
-                        linkPrefix.innerText = item.shlink.pre;
-                        linkSuffix.innerText = item.shlink.suf;
-                        linkWrapper.style.color = item.color;
-                        linkWrapper.classList.add('active');
+                        if (!currentActiveIcon) {
+                            animateLinkPreview(item.shlink.pre, item.shlink.suf, item.color);
+                        }
                     }
 
                     root.style.setProperty('--bg-color', hexToRgba(item.color, 0.15));
@@ -513,9 +530,12 @@
                     if (!draggedBody) {
                         body.isHovered = false;
                         descText.classList.remove('active');
-                        linkWrapper.classList.remove('active');
-                        root.style.setProperty('--bg-color', '#4f97ac');
-                        root.style.setProperty('--pattern-color', '#397e90');
+
+                        if (!currentActiveIcon) {
+                            linkWrapper.classList.remove('active');
+                            root.style.setProperty('--bg-color', '#4f97ac');
+                            root.style.setProperty('--pattern-color', '#397e90');
+                        }
                     }
                 }
 
@@ -535,10 +555,7 @@
                             body.element.classList.add('activated');
                             currentActiveIcon = body;
 
-                            linkPrefix.innerText = item.shlink.pre;
-                            linkSuffix.innerText = item.shlink.suf;
-                            linkWrapper.style.color = item.color;
-                            linkWrapper.classList.add('active');
+                            animateLinkPreview(item.shlink.pre, item.shlink.suf, item.color);
 
                             descText.innerText = item.desc;
                             descText.classList.add('active');
