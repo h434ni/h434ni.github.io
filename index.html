@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #4f97ac;         
+            --pattern-color: #397e90;    
+            --text-color: #333333;
+            --center-size: 160px;
+            --center-border: #397e90;
+            --transition-speed: 0.8s;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+            transition: background-color 0.4s ease;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%; right: -50%; bottom: -50%;
+            z-index: 0;
+            pointer-events: none;
+            background-color: var(--pattern-color);
+            transition: background-color 0.4s ease;
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 24 24'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+            -webkit-mask-size: 60px 60px;
+            mask-size: 60px 60px;
+            animation: sketchy-zigzag 4s steps(12) infinite;
+        }
+
+        @keyframes sketchy-zigzag {
+            0%   { -webkit-mask-position: 0px 0px; mask-position: 0px 0px; }
+            25%  { -webkit-mask-position: 15px 15px; mask-position: 15px 15px; }
+            50%  { -webkit-mask-position: 30px 0px; mask-position: 30px 0px; }
+            75%  { -webkit-mask-position: 45px 15px; mask-position: 45px 15px; }
+            100% { -webkit-mask-position: 60px 0px; mask-position: 60px 0px; }
+        }
+
+        .backdrop-panel {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 480px;
+            height: 800px;
+            max-width: 90vw;
+            max-height: 90vh;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 40px;
+            z-index: 5;
+            clip-path: circle(0% at center);
+            transition: clip-path 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+            pointer-events: none;
+        }
+
+        body.card-open .backdrop-panel {
+            clip-path: circle(150% at center);
+        }
+
+        .center-piece {
+            position: absolute;
+            width: var(--center-size);
+            height: var(--center-size);
+            border-radius: 50%;
+            background: #fff;
+            border: 5px solid var(--center-border);
+            box-shadow: 0 0 120px rgba(57, 126, 144, 0.7); 
+            z-index: 30;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease-in-out;
+        }
+
+        .center-piece img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        
+        .center-piece:active img {
+            transform: none;
+        }
+
+        /* Fixed Description Text Alignment */
+        .desc-text {
+            position: absolute;
+            bottom: 15%; 
+            left: 50%;
+            transform: translateX(-50%);
+            
+            /* Allow width to fit text, centered content */
+            width: auto;
+            min-width: 120px; 
+            white-space: nowrap;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #333;
+            
+            background: #ffffff;
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 2px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            
+            opacity: 0;
+            transition: opacity 0.3s ease, top 0.8s ease;
+            z-index: 40;
+            pointer-events: none;
+        }
+
+        .desc-text.active {
+            opacity: 1;
+        }
+
+        .orbiter {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            text-decoration: none;
+            background-color: var(--icon-bg); 
+            box-shadow: 0 0 15px var(--shadow-color);
+            transition: 
+                transform var(--transition-speed) cubic-bezier(0.19, 1, 0.22, 1),
+                width var(--transition-speed) ease,
+                height var(--transition-speed) ease,
+                background-color var(--transition-speed) ease,
+                box-shadow var(--transition-speed) ease;
+            top: 0; left: 0;
+            z-index: 20;
+            backface-visibility: hidden;
+        }
+
+        .orbiter i {
+            color: white; 
+            pointer-events: none;
+            transition: all var(--transition-speed) ease;
+        }
+
+        body.grid-active .orbiter {
+            background-color: transparent !important; 
+            box-shadow: none !important;
+            width: 48px !important; 
+            height: 48px !important;
+        }
+
+        body.grid-active .orbiter i {
+            color: var(--brand-color) !important;
+            font-size: 29px !important;
+        }
+        
+        body.grid-active .orbiter:hover i {
+            transform: scale(1.3);
+        }
+
+        #gridLinkContainer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 25;
+            pointer-events: none;
+            opacity: 0; 
+            transition: opacity 0.3s ease;
+        }
+
+        body.grid-active #gridLinkContainer {
+            opacity: 1; 
+        }
+
+        .link-wrapper {
+            position: relative;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            white-space: nowrap;
+            transition: color 0.3s ease;
+        }
+
+        .link-core {
+            display: inline-block;
+            position: relative;
+            z-index: 2;
+        }
+
+        .link-part {
+            position: absolute;
+            top: 0;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            font-weight: 600;
+        }
+
+        #linkPrefix {
+            right: 100%;
+            transform: translateX(15px);
+        }
+
+        #linkSuffix {
+            left: 100%;
+            transform: translateX(-15px);
+        }
+
+        .link-wrapper.active #linkPrefix {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .link-wrapper.active #linkSuffix {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="backdrop-panel" id="backdropPanel"></div>
+
+    <div class="desc-text" id="descText">Hello</div>
+
+    <div id="gridLinkContainer">
+        <div class="link-wrapper" id="linkWrapper">
+            <span class="link-part" id="linkPrefix"></span>
+            <span class="link-core" id="linkCore">h434ni</span>
+            <span class="link-part" id="linkSuffix"></span>
+        </div>
+    </div>
+
+    <div class="center-piece" id="centerPiece">
+        <img src="mypic.jpg" alt="Profile" id="profileImg">
+    </div>
+
+    <script>
+        const config = {
+            baseSize: 45,       
+            scaleStep: 6,       
+            centerRadius: 90,   
+            iconPadding: 12,    
+            friction: 0.92,     
+            maxSpeed: 3.0,      
+            repulsionStrength: 0.8, 
+            centerRepulsion: 0.2,
+            spawnPadding: 100, 
+        };
+
+        const links = [
+            { 
+                name: "Telegram", color: "#26A5E4", size: 7, link: "https://telegram.org", desc: "Telegram", icon: "fa-brands fa-telegram",
+                shlink: { pre: "t.me/", suf: "" } 
+            },
+            { 
+                name: "TikTok", color: "#000000", size: 6, link: "https://www.tiktok.com/@h434ni", desc: "TikTok", icon: "fa-brands fa-tiktok",
+                shlink: { pre: "/@", suf: "" }
+            },
+            { 
+                name: "Reddit", color: "#FF4500", size: 6, link: "https://www.reddit.com/u/h434ni/", desc: "Reddit", icon: "fa-brands fa-reddit",
+                shlink: { pre: "/u/", suf: "" }
+            },
+            { 
+                name: "LinkedIn", color: "#0077B5", size: 6, link: "https://linkedin.com/in/h434ni", desc: "LinkedIn", icon: "fa-brands fa-linkedin",
+                shlink: { pre: "/in/", suf: "" }
+            },
+            { 
+                name: "IMDb", color: "#F5C518", size: 5, link: "https://www.imdb.com/user/ur187080297/", desc: "IMDb", icon: "fa-brands fa-imdb",
+                shlink: { pre: "@", suf: "" }
+            },
+            { 
+                name: "X", color: "#000000", size: 5, link: "https://x.com/h434ni", desc: "X (Twitter)", icon: "fa-brands fa-x-twitter",
+                shlink: { pre: "/", suf: "" }
+            },
+            { 
+                name: "DeviantArt", color: "#05CC47", size: 6, link: "https://deviantart.com/h434ni", desc: "DeviantArt", icon: "fa-brands fa-deviantart",
+                shlink: { pre: "@", suf: "" }
+            },
+            { 
+                name: "Website", color: "#216977", size: 6, link: "https://h434ni.ir", desc: "Website", icon: "fa-solid fa-globe",
+                shlink: { pre: "", suf: ".ir" }
+            },
+            { 
+                name: "ArtStation", color: "#13aff0", size: 6, link: "https://www.artstation.com/h434ni", desc: "ArtStation", icon: "fa-brands fa-artstation",
+                shlink: { pre: "", suf: ".artstation.com" }
+            },
+            { 
+                name: "GitHub", color: "#181717", size: 8, link: "https://github.com/h434ni", desc: "GitHub", icon: "fa-brands fa-github",
+                shlink: { pre: "/", suf: "" }
+            },
+            { 
+                name: "Discord", color: "#5865F2", size: 7, link: "https://discordapp.com/users/h434ni", desc: "Discord", icon: "fa-brands fa-discord",
+                shlink: { pre: "/users/", suf: "" }
+            },
+            { 
+                name: "Email", color: "#EA4335", size: 5, link: "mailto:h434ni@proton.me", desc: "Email", icon: "fa-solid fa-envelope",
+                shlink: { pre: "", suf: "@proton.me" }
+            },
+            { 
+                name: "Facebook", color: "#1877F2", size: 6, link: "https://www.facebook.com/h434ni/", desc: "Facebook", icon: "fa-brands fa-facebook",
+                shlink: { pre: "/", suf: "" }
+            },
+            { 
+                name: "Bluesky", color: "#0560FF", size: 5, link: "https://bsky.app", desc: "Bluesky", icon: "fa-brands fa-bluesky",
+                shlink: { pre: "@", suf: ".bsky.social" }
+            },
+            { 
+                name: "Steam", color: "#0777b8", size: 7, link: "https://steamcommunity.com/profiles/76561199767503903/", desc: "Steam", icon: "fa-brands fa-steam",
+                shlink: { pre: "/profile/", suf: "" }
+            },
+            { 
+                name: "Youtube", color: "#ff0033", size: 7, link: "https://www.youtube.com/@h434ni", desc: "Youtube", icon: "fa-brands fa-youtube",
+                shlink: { pre: "/@", suf: "" }
+            },
+            { 
+                name: "Pinterest", color: "#e60023", size: 7, link: "https://www.pinterest.com/h434ni/", desc: "Pinterest", icon: "fa-brands fa-pinterest",
+                shlink: { pre: "/", suf: "" }
+            },
+        ];
+
+        const bodies = [];
+        const centerPiece = document.getElementById('centerPiece');
+        const descText = document.getElementById('descText');
+        const backdropPanel = document.getElementById('backdropPanel');
+        
+        const gridLinkContainer = document.getElementById('gridLinkContainer');
+        const linkWrapper = document.getElementById('linkWrapper');
+        const linkPrefix = document.getElementById('linkPrefix');
+        const linkSuffix = document.getElementById('linkSuffix');
+        const linkCore = document.getElementById('linkCore');
+
+        const root = document.documentElement;
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        let draggedBody = null;
+        let mouseX = 0;
+        let mouseY = 0;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        
+        let isGridMode = false;
+        let isAnimating = false;
+
+        function hexToRgba(hex, alpha) {
+            let c = hex.substring(1).split('');
+            if(c.length===3) c=[c[0],c[0],c[1],c[1],c[2],c[2]];
+            c = '0x'+c.join('');
+            return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+        }
+
+        function initElements() {
+            links.forEach((item, i) => {
+                const el = document.createElement('a');
+                el.href = item.link;
+                el.target = "_blank";
+                el.className = 'orbiter';
+                el.ondragstart = () => false; 
+                el.innerHTML = `<i class="${item.icon}"></i>`;
+                
+                const diameter = config.baseSize + ((item.size - 1) * config.scaleStep);
+                el.style.width = diameter + 'px';
+                el.style.height = diameter + 'px';
+                el.style.setProperty('--icon-bg', item.color);
+                el.style.setProperty('--brand-color', item.color);
+                el.style.setProperty('--shadow-color', hexToRgba(item.color, 0.4));
+                el.style.fontSize = Math.round(diameter * 0.5) + 'px';
+
+                const safeW = width - (config.spawnPadding * 2);
+                const safeH = height - (config.spawnPadding * 2);
+                const spawnW = safeW > 0 ? safeW : width;
+                const spawnH = safeH > 0 ? safeH : height;
+                const offsetX = safeW > 0 ? config.spawnPadding : 0;
+                const offsetY = safeH > 0 ? config.spawnPadding : 0;
+
+                const body = {
+                    element: el,
+                    x: offsetX + Math.random() * spawnW,
+                    y: offsetY + Math.random() * spawnH,
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: (Math.random() - 0.5) * 1.5,
+                    radius: diameter / 2,
+                    data: item,
+                    isHovered: false
+                };
+
+                el.addEventListener('mousedown', (e) => {
+                    if(isGridMode) return;
+                    draggedBody = body;
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    e.preventDefault(); 
+                });
+
+                el.addEventListener('click', (e) => {
+                    if(!isGridMode) {
+                        const dx = e.clientX - dragStartX;
+                        const dy = e.clientY - dragStartY;
+                        if (dx*dx + dy*dy > 25) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }
+                    }
+                });
+
+                el.addEventListener('mouseenter', () => {
+                    body.isHovered = true;
+                    
+                    descText.innerText = item.desc;
+                    descText.classList.add('active');
+
+                    if(isGridMode) {
+                        linkPrefix.innerText = item.shlink.pre;
+                        linkSuffix.innerText = item.shlink.suf;
+                        linkWrapper.style.color = item.color;
+                        linkWrapper.classList.add('active');
+                    }
+
+                    root.style.setProperty('--bg-color', hexToRgba(item.color, 0.15));
+                    root.style.setProperty('--pattern-color', hexToRgba(item.color, 0.25));
+                });
+
+                el.addEventListener('mouseleave', () => {
+                    body.isHovered = false;
+                    descText.classList.remove('active');
+                    linkWrapper.classList.remove('active');
+                    root.style.setProperty('--bg-color', '#4f97ac');
+                    root.style.setProperty('--pattern-color', '#397e90');
+                });
+
+                document.body.appendChild(el);
+                bodies.push(body);
+            });
+        }
+
+        centerPiece.addEventListener('click', () => {
+            if(!isAnimating) toggleGridMode();
+        });
+
+        function calculateGridPositions() {
+            const cardRect = backdropPanel.getBoundingClientRect();
+            const cardW = cardRect.width;
+            const cardH = cardRect.height;
+            const cardLeft = cardRect.left;
+            const cardTop = cardRect.top;
+            const centerX = cardLeft + (cardW / 2);
+
+            const picX = centerX;
+            const picY = cardTop + 140; 
+
+            if(isGridMode) {
+                centerPiece.style.left = picX + 'px';
+                centerPiece.style.top = picY + 'px';
+            }
+
+            const gridStartY = picY + 110; 
+            const cols = 4;
+            const gapX = 85; 
+            const gapY = 70; 
+            
+            const linkX = centerX;
+            const linkY = cardTop + cardH - 120;
+            gridLinkContainer.style.left = linkX + 'px';
+            gridLinkContainer.style.top = linkY + 'px';
+            
+            if(isGridMode) {
+                descText.style.top = (linkY + 60) + 'px';
+                descText.style.left = linkX + 'px';
+                descText.style.transform = 'translate(-50%, -50%)';
+            } else {
+                descText.style.top = ''; 
+                descText.style.left = '50%';
+                descText.style.transform = 'translateX(-50%)';
+            }
+
+            return { centerX, startY: gridStartY, gapX, gapY, cols };
+        }
+
+        function toggleGridMode() {
+            isAnimating = true; 
+            
+            if (!isGridMode) {
+                isGridMode = true;
+                document.body.classList.add('card-open');
+
+                setTimeout(() => {
+                    document.body.classList.add('grid-active');
+                    
+                    const pos = calculateGridPositions();
+                    const totalItems = links.length;
+                    
+                    bodies.forEach((b, index) => {
+                        b.vx = 0; b.vy = 0;
+                        const row = Math.floor(index / pos.cols);
+                        const col = index % pos.cols;
+                        const fullRows = Math.floor(totalItems / pos.cols);
+                        let itemsInCurrentRow = pos.cols;
+                        if (row === fullRows && (totalItems % pos.cols !== 0)) {
+                            itemsInCurrentRow = totalItems % pos.cols;
+                        }
+                        const rowWidth = (itemsInCurrentRow - 1) * pos.gapX;
+                        const startOffsetX = -rowWidth / 2;
+
+                        const targetX = pos.centerX + startOffsetX + (col * pos.gapX);
+                        const targetY = pos.startY + (row * pos.gapY);
+
+                        // FIX: Center grid icons by subtracting half of grid-size (48px / 2 = 24px)
+                        b.element.style.transform = `translate3d(${targetX - 24}px, ${targetY - 24}px, 0)`;
+                    });
+
+                    root.style.setProperty('--bg-color', '#4f97ac'); 
+                    root.style.setProperty('--pattern-color', '#397e90');
+                    
+                    setTimeout(() => { isAnimating = false; }, 800);
+
+                }, 420); 
+
+            } else {
+                isGridMode = false;
+                document.body.classList.remove('grid-active');
+                
+                centerPiece.style.transition = 'all 0.4s ease-in-out';
+                centerPiece.style.removeProperty('left');
+                centerPiece.style.removeProperty('top');
+                
+                descText.style.top = ''; 
+                descText.style.left = '50%';
+                descText.style.transform = 'translateX(-50%)';
+
+                const safeW = width - (config.spawnPadding * 2);
+                const safeH = height - (config.spawnPadding * 2);
+                const offsetX = safeW > 0 ? config.spawnPadding : 0;
+                const offsetY = safeH > 0 ? config.spawnPadding : 0;
+
+                bodies.forEach((b) => {
+                    const randX = offsetX + Math.random() * (safeW || width);
+                    const randY = offsetY + Math.random() * (safeH || height);
+                    
+                    b.element.style.transform = `translate3d(${randX}px, ${randY}px, 0)`;
+                    
+                    b.x = randX + b.radius; 
+                    b.y = randY + b.radius;
+                    b.vx = (Math.random() - 0.5) * 5;
+                    b.vy = (Math.random() - 0.5) * 5;
+                });
+
+                setTimeout(() => {
+                    centerPiece.style.transition = '';
+                    document.body.classList.remove('card-open');
+                    isAnimating = false;
+                }, 560);
+            }
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => {
+            draggedBody = null;
+        });
+
+        function updatePhysics() {
+            if (isGridMode || isAnimating) {
+                requestAnimationFrame(updatePhysics);
+                return;
+            }
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            for (let i = 0; i < bodies.length; i++) {
+                let b1 = bodies[i];
+                
+                if (b1 === draggedBody) {
+                    b1.x = mouseX;
+                    b1.y = mouseY;
+                    b1.vx = 0; b1.vy = 0;
+                    b1.element.style.transform = `translate3d(${b1.x - b1.radius}px, ${b1.y - b1.radius}px, 0)`;
+                    continue; 
+                }
+
+                if (b1.isHovered) {
+                    b1.vx = 0; b1.vy = 0;
+                    continue; 
+                }
+
+                let dx = b1.x - centerX;
+                let dy = b1.y - centerY;
+                let dist = Math.sqrt(dx * dx + dy * dy);
+                let minDist = config.centerRadius + b1.radius;
+                
+                if (dist < minDist) {
+                    let force = (minDist - dist) * config.centerRepulsion;
+                    let angle = Math.atan2(dy, dx);
+                    b1.vx += Math.cos(angle) * force;
+                    b1.vy += Math.sin(angle) * force;
+                }
+
+                for (let j = 0; j < bodies.length; j++) {
+                    if (i === j) continue;
+                    let b2 = bodies[j];
+                    
+                    let dx2 = b1.x - b2.x;
+                    let dy2 = b1.y - b2.y;
+                    let dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+                    let minGap = b1.radius + b2.radius + config.iconPadding;
+
+                    if (dist2 < minGap) {
+                        let force = (minGap - dist2) * config.repulsionStrength;
+                        if (dist2 < 0.1) { dx2 = Math.random(); dy2 = Math.random(); dist2 = 1; }
+                        b1.vx += (dx2 / dist2) * force;
+                        b1.vy += (dy2 / dist2) * force;
+                    }
+                }
+
+                let speed = Math.sqrt(b1.vx*b1.vx + b1.vy*b1.vy);
+                if (speed > config.maxSpeed) {
+                    b1.vx = (b1.vx / speed) * config.maxSpeed;
+                    b1.vy = (b1.vy / speed) * config.maxSpeed;
+                }
+
+                b1.vx *= config.friction;
+                b1.vy *= config.friction;
+
+                b1.x += b1.vx;
+                b1.y += b1.vy;
+
+                if (b1.x + b1.radius > width) { b1.x = width - b1.radius; b1.vx *= -0.5; } 
+                else if (b1.x - b1.radius < 0) { b1.x = b1.radius; b1.vx *= -0.5; }
+
+                if (b1.y + b1.radius > height) { b1.y = height - b1.radius; b1.vy *= -0.5; } 
+                else if (b1.y - b1.radius < 0) { b1.y = b1.radius; b1.vy *= -0.5; }
+
+                b1.element.style.transform = `translate3d(${b1.x - b1.radius}px, ${b1.y - b1.radius}px, 0)`;
+            }
+
+            requestAnimationFrame(updatePhysics);
+        }
+
+        initElements();
+        updatePhysics();
+
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            if(!isGridMode){
+                bodies.forEach(b => {
+                    b.vx += (Math.random() - 0.5) * 2;
+                    b.vy += (Math.random() - 0.5) * 2;
+                });
+            } else {
+                const pos = calculateGridPositions();
+                const totalItems = links.length;
+                bodies.forEach((b, index) => {
+                    const row = Math.floor(index / pos.cols);
+                    const col = index % pos.cols;
+                    const fullRows = Math.floor(totalItems / pos.cols);
+                    let itemsInCurrentRow = pos.cols;
+                    if (row === fullRows && (totalItems % pos.cols !== 0)) {
+                        itemsInCurrentRow = totalItems % pos.cols;
+                    }
+                    const rowWidth = (itemsInCurrentRow - 1) * pos.gapX;
+                    const startOffsetX = -rowWidth / 2;
+                    const targetX = pos.centerX + startOffsetX + (col * pos.gapX);
+                    const targetY = pos.startY + (row * pos.gapY);
+                    b.element.style.transform = `translate3d(${targetX - 24}px, ${targetY - 24}px, 0)`;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
