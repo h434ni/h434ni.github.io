@@ -271,15 +271,16 @@
 
     <script>
         const config = {
-            baseSize: 45,       
-            scaleStep: 6,       
-            centerRadius: 90,   
-            iconPadding: 12,    
-            friction: 0.92,     
-            maxSpeed: 3.0,      
-            repulsionStrength: 0.8, 
+            baseSize: 45,
+            scaleStep: 6,
+            centerRadius: 90,
+            iconPadding: 12,
+            friction: 0.92,
+            maxSpeed: 3.0,
+            repulsionStrength: 0.8,
             centerRepulsion: 0.2,
-            spawnPadding: 100, 
+            spawnPadding: 100,
+            showDescriptionInGridMode: false
         };
 
         const links = [
@@ -494,8 +495,11 @@
 
                             animateLinkPreview(item.shlink.pre, item.shlink.suf, item.color);
 
-                            descText.innerText = item.desc;
-                            descText.classList.add('active');
+                            if (config.showDescriptionInGridMode) {
+                                descText.innerText = item.desc;
+                                descText.classList.add('active');
+                            }
+
                             root.style.setProperty('--bg-color', hexToRgba(item.color, 0.15));
                             root.style.setProperty('--pattern-color', hexToRgba(item.color, 0.25));
 
@@ -526,8 +530,11 @@
 
                 function handleIconEnter() {
                     body.isHovered = true;
-                    descText.innerText = item.desc;
-                    descText.classList.add('active');
+
+                    if(!isGridMode || config.showDescriptionInGridMode) {
+                        descText.innerText = item.desc;
+                        descText.classList.add('active');
+                    }
 
                     if(isGridMode) {
                         if (!currentActiveIcon) {
@@ -570,8 +577,11 @@
 
                             animateLinkPreview(item.shlink.pre, item.shlink.suf, item.color);
 
-                            descText.innerText = item.desc;
-                            descText.classList.add('active');
+                            if (config.showDescriptionInGridMode) {
+                                descText.innerText = item.desc;
+                                descText.classList.add('active');
+                            }
+
                             root.style.setProperty('--bg-color', hexToRgba(item.color, 0.15));
                             root.style.setProperty('--pattern-color', hexToRgba(item.color, 0.25));
 
