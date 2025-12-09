@@ -166,7 +166,7 @@
         }
 
         body.grid-active .orbiter {
-            background-color: transparent !important;
+            background-color: rgba(var(--grid-bg-rgb), 0.2) !important;
             box-shadow: none !important;
             width: 48px !important;
             height: 48px !important;
@@ -421,7 +421,20 @@
                 el.style.setProperty('--icon-bg', item.color);
                 el.style.setProperty('--brand-color', item.color);
                 el.style.setProperty('--shadow-color', hexToRgba(item.color, 0.4));
-                el.style.setProperty('--grid-bg-color', item.color.replace('#', ''));
+
+                const hex = item.color.substring(1);
+                let c;
+                if(hex.length === 3) {
+                    c = [hex[0], hex[0], hex[1], hex[1], hex[2], hex[2]];
+                } else {
+                    c = hex.split('');
+                }
+                c = '0x' + c.join('');
+                const r = (c >> 16) & 255;
+                const g = (c >> 8) & 255;
+                const b = c & 255;
+                el.style.setProperty('--grid-bg-rgb', r + ', ' + g + ', ' + b);
+
                 el.style.fontSize = Math.round(diameter * 0.5) + 'px';
 
                 const safeW = width - (config.spawnPadding * 2);
